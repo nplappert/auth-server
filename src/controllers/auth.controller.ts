@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import UserService from "../services/user.service";
 import bcrypt from "bcrypt";
-import { verifyRefreshToken, refreshTokens, setTokens, clearTokens } from "../utils/token.utils";
+import { verifyRefreshToken, refreshTokens, setTokens, clearTokens, buildTokens } from "../utils/token.utils";
 import { Cookies } from "../interfaces/token-payload";
 
 export default new class AuthController { 
@@ -10,9 +10,9 @@ export default new class AuthController {
             const { email, password } = req.body;
 
             // Validate if user already exists
-            const user = await UserService.getUserByEmail(email);
+            const userValidation = await UserService.getUserByEmail(email);
 
-            if (user) {
+            if (userValidation) {
                 return res.status(400).json({
                     errors: "This user already exits",
                 });
@@ -20,9 +20,15 @@ export default new class AuthController {
 
             // Create user
             const hashedPassword: string = await bcrypt.hash(password, 10);
-            const userId = await UserService.createUser(email, hashedPassword);
+            const user = await UserService.createUser(email, hashedPassword);
+
+            const { accessToken, refreshToken } = buildTokens(user);
+            setTokens(res, accessToken, refreshToken);
             
-            res.json({ Id: userId });
+            res.json({
+                msg: 'User successfully registerd!'
+            })
+            // res.redirect('clientUrl/me')
         } catch (error) {
             res.status(400).send({ error: error});
         }
@@ -44,6 +50,9 @@ export default new class AuthController {
             });
         }
 
+        const { accessToken, refreshToken } = buildTokens(user);
+        setTokens(res, accessToken, refreshToken);
+
         res.status(200).json({
             msg: "User logged in"
         });
@@ -55,7 +64,8 @@ export default new class AuthController {
     }
 
     async logoutAll(_req: Request, res: Response) {
-        await increaseTokenVersion(res.locals.token.userId);
+        console.log(res.locals.token.userId);
+        await UserService.increaseTokenVersion(res.locals.token.userId);
 
         clearTokens(res);
         res.end();
@@ -66,13 +76,13 @@ export default new class AuthController {
             const current = verifyRefreshToken(req.cookies[Cookies.RefreshToken]);
             const user = await UserService.getUserById(current.userId);
             if (!user) throw 'User not found';
-        
+
             const { accessToken, refreshToken } = refreshTokens(current, user.tokenVersion);
             setTokens(res, accessToken, refreshToken);
-          } catch (error) {
+        } catch (error) {
             clearTokens(res);
-          }
-        
+        }
+
         res.end();
     }
 
@@ -80,8 +90,4 @@ export default new class AuthController {
         const user = await UserService.getUserById(res.locals.token.userId);
         res.json(user);
     }
-}
-
-function increaseTokenVersion(userId: any) {
-    throw new Error("Function not implemented.");
 }

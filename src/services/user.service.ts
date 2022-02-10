@@ -2,7 +2,7 @@ import { User, userRepository } from "../models/user.model";
 
 export default new class UserService {
 
-    async createUser(email: string, password: string): Promise<string> {
+    async createUser(email: string, password: string): Promise<User> {
         try {
             let user = userRepository.createEntity();
             user.email = email;
@@ -14,8 +14,9 @@ export default new class UserService {
             
             user.tokenVersion = 0;
             
-            let userId = await userRepository.save(user);
-            return userId;
+            await userRepository.save(user);
+
+            return user;
         } catch (error) {
             console.log(error);
             throw new Error("Failed to create user");
@@ -42,12 +43,12 @@ export default new class UserService {
         }
     }
 
-    async increaseTokenVersion(userId: string) {
+    async increaseTokenVersion(userId: string): Promise<void> {
         try {
-            const user = await userRepository.fetch(userId);
-            user.tokenVersion++;
+            let user = await userRepository.fetch(userId);
+            user.tokenVersion += 1;
 
-            return await userRepository.save(user);
+            await userRepository.save(user);
         } catch (error) {
             console.log(error);
             throw new Error("Failed to increase token id"); 

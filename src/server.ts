@@ -1,18 +1,16 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { Client } from "redis-om";
 import routes from "./routes";
 
-const port = 5000;
+const port = process.env.PORT! ?? '5001';
 const app = express();
-const client = new Client();
 
 
 const main = async () => {
-    await client.open('redis://localhost:6379');
-    console.log(await client.execute<string>(['PING']));
-
     app.use(cors({
         origin: 'http://localhost:3000',
         credentials: true,

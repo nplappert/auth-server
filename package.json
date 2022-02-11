@@ -1,7 +1,7 @@
 {
   "name": "auth-server",
   "version": "1.0.0",
-  "description": "basic redis auth server",
+  "description": "node + redis + jwt auth server",
   "main": "server.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn src/server.ts",

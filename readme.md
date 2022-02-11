@@ -1,1 +1,8 @@
-Authentication server build with node js, redis, jwt
+Authentication server
+
+Build with the following packages:
+
+- node js
+- express
+- redis-om (preview)
+- jwt

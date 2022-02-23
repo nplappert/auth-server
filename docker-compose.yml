@@ -1,20 +1,16 @@
 version: "3.9"
 services:
-  redis:
-    container_name: redisModules
-    image: "redislabs/redismod:latest"
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest    
     ports:
-      - "6379:6379"
+      - 27017:27017
     volumes:
       - ./data:/data
-    entrypoint: >
-      redis-server
-        --loadmodule /usr/lib/redis/modules/redisearch.so
-        --loadmodule /usr/lib/redis/modules/redisgraph.so
-        --loadmodule /usr/lib/redis/modules/redistimeseries.so
-        --loadmodule /usr/lib/redis/modules/rejson.so
-        --appendonly yes
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+
+networks:
+  default:
+    name: mongodb_network
